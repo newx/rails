@@ -79,6 +79,19 @@ class ActiveStorage::Blob < ActiveRecord::Base
     def create_before_direct_upload!(filename:, byte_size:, checksum:, content_type: nil, metadata: nil)
       create! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata
     end
+
+    # Generates a unique secure token key that is used to generate an unique active_storage_blob.key.
+    # Supports a key prefix that can be defined on Rails.application.config.active_storage.key_prefix .
+    # See https://github.com/rails/rails/blob/master/activerecord/lib/active_record/secure_token.rb
+    def self.generate_unique_secure_token
+      token = SecureRandom.base58(24)
+
+      if prefix = ActiveStorage.key_prefix
+        [prefix, token].join("_")
+      else
+        token
+      end
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
